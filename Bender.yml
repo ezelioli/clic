@@ -33,3 +33,6 @@ sources:
   - src/clic_target.sv
   - src/clic.sv
 
+  - target: any(simulation, test)
+    files:
+      - src/tb/clic_tb.sv
