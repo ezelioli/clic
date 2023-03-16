@@ -1,2 +1,7 @@
 Makefile
 sim/
+.bender/
+Bender.lock
+modelsim.ini
+transcript
+vsim.wlf

@@ -43,6 +43,36 @@ module clic_tb;
   logic [IRQ_SRC_WIDTH-1:0] irq_id;
   logic               [7:0] irq_level;
   logic                     irq_shv;
+  logic               [1:0] irq_priv;
+
+  // External interrupts
+  logic msip, mtip, meip; // machine software, timer, external interrupts
+  logic ssip, stip, seip; // supervisor software, timer, external interrupts
+
+  // RISC-V privileged spec interrupts
+  logic [63:0] local_irqs;
+
+  assign local_irqs = {
+    {48{1'b0}},      // 64-16: designated for platform use
+    {4{1'b0}},       // 15-12: reserved
+    meip,            //    11: meip
+    1'b0,            //    10: reserved
+    seip,            //     9: seip
+    1'b0,            //     8: reserved
+    mtip,            //     7: mtip
+    1'b0,            //     6: reserved
+    stip,            //     5: stip
+    1'b0,            //     4: reserved
+    msip,            //     3: msip
+    1'b0,            //     2: reserved
+    ssip,            //     1: ssip
+    1'b0             //     0: reserved
+  };
+
+  assign intr_src = {
+    {(N_IRQ_SRCS-64){1'b0}},
+    local_irqs
+  };
 
   // CLIC registers buffers
   
@@ -92,7 +122,8 @@ module clic_tb;
     .irq_ready_i (irq_ready),
     .irq_id_o    (irq_id),
     .irq_level_o (irq_level),
-    .irq_shv_o   (irq_shv)
+    .irq_shv_o   (irq_shv),
+    .irq_priv_o  (irq_priv)
   );
 
   // RST/CLK generation
@@ -121,7 +152,6 @@ module clic_tb;
   // Default signals
   always_comb begin
 
-    intr_src  = 8'b0;
     irq_ready = 1'b0;
 
     clic_info_d = clic_info_q;
@@ -206,10 +236,18 @@ module clic_tb;
     reg_req.wdata = 32'b0;
     reg_req.write =  1'b0;
 
+    // external interrupts
+    msip = 1'b0;
+    mtip = 1'b0;
+    meip = 1'b0;
+    ssip = 1'b0;
+    stip = 1'b0;
+    seip = 1'b0;
+
     // write registers
     wait(cycles == 24);
     clic_reg_write(clic_reg_pkg::CLIC_CLICINFO_OFFSET, 32'hAAAA_AAAA); // read-only
-    clic_reg_write(clic_reg_pkg::CLIC_CLICCFG_OFFSET, 32'h0000_0010); // set nmbits=0, nlbits=8, nvbits=0
+    clic_reg_write(clic_reg_pkg::CLIC_CLICCFG_OFFSET, 32'b0101_0000); // set nmbits=2, nlbits=8, nvbits=0
 
     // read back registers
     wait(cycles == 49);
@@ -217,8 +255,30 @@ module clic_tb;
     clic_reg_read(clic_reg_pkg::CLIC_CLICCFG_OFFSET);
 
     wait(cycles == 100);
-    clic_reg_write(32'h0000_1008, 32'b1100_0010); // set clicintattr[0].{shv=0, trig=0b01, mode=0b11} (not vectored, positive-edge-triggered, M-mode)
-    clic_reg_read(32'h0000_1008);
+    clic_reg_write(32'h0000_1058, 32'b0100_0000); // set clicintattr[STIP].{shv=0, trig=0b00, mode=0b01} (not vectored, positive-level-triggered, S-mode)
+    clic_reg_write(32'h0000_1078, 32'b1100_0000); // set clicintattr[MTIP].{shv=0, trig=0b00, mode=0b11} (not vectored, positive-level-triggered, M-mode)
+
+    wait(cycles == 120);
+    clic_reg_write(32'h0000_107C, 32'hFF); // set clicintctrl[MTIP] = 254 (priority/level)
+    clic_reg_write(32'h0000_105C, 32'hFF); // set clicintctrl[STIP] = 255 (priority/level)
+
+    wait(cycles == 140);
+    clic_reg_write(32'h0000_1074, 32'b1); // set clicintie[MTIP] = 1
+    clic_reg_write(32'h0000_1054, 32'b1); // set clicintie[STIP] = 1
+
+    wait(cycles == 200);
+    @(posedge clk);
+    mtip = 1'b1;
+    stip = 1'b1;
+    @(posedge clk);
+
+    wait(cycles == 300);
+    mtip = 1'b0;
+    // clic_reg_write(32'h0000_1070, 32'h0); // clear clicintip[MTIP] = 0
+
+    wait(cycles == 350);
+    stip = 1'b0;
+    // clic_reg_write(32'h0000_1050, 32'h0); // clear clicintip[STIP] = 0    
 
     // wait forever
     forever begin
