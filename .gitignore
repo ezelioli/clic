@@ -6,3 +6,4 @@ transcript
 vsim.wlf
 memories/
 traces/
+sim/tcl/compile.tcl
