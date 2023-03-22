@@ -35,4 +35,11 @@ sources:
 
   - target: any(simulation, test)
     files:
+      - src/tb/clic_tb_pkg.sv
+      - src/tb/clic_csr_regfile.sv
+      - src/tb/clic_if.sv
+      - src/tb/clic_tracer.sv
+      - src/tb/clic_memory.sv
+      - src/tb/clic_pipeline.sv
+      - src/tb/clic_controller.sv
       - src/tb/clic_tb.sv

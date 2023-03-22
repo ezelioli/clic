@@ -1,7 +1,8 @@
-Makefile
-sim/
+**/work/
 .bender/
 Bender.lock
 modelsim.ini
 transcript
 vsim.wlf
+memories/
+traces/

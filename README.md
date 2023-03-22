@@ -119,6 +119,25 @@ requiring the memory map description (`src/gen/clic.hjson`) to be derived from a
 template (`src/gen/clic.hjson.tpl`), resulting in rather unwieldy code and
 documentation.
 
+## CLIC Testbench
+
+All testbench files are located in *src/tb/*. The testbench consists of a top level wrapper (*clic_tb.sv*) that contains an instance of the CLIC IP and a CLIC-compliant target (aka [CLIC controller](./src/tb/clic_controller.sv). The controller simulates the behaviour of a privileged (U/S/M) RISC-V core that support the CLIC interface. It contains a simple pipeline that fetches pseudo-instruction from a Read-Only Memory (ROM) submodule. Currently, the only pseudo-instructions supported are CSR writes, M-/S-RET, and NOPs. The implementation complexity is minimized by only implementing a subset of the CSR registers normally implemented by a RISC-V core (only the ones related to exceptional control flow). The implementation simulates a single-hart capable of running in U-/S-/M-mode and of handling incoming CLIC interrupts at M and S privilege levels. Traces are generated for every retired instruction/interrupt, and can be used to observe the behaviour of the hart upon interrupts reception. 
+Upon reset, the controller pipeline starts fetching from address 0x0000 (M-mode main). In order to execute meaningful tests, a set of 4 headers containing the respective ROM banks initial values must be generated. This can be done by the helper [Python script](./utils/py/gen_memories.py). By default, it generates a minimal set of pseudo-instructions that enables M-/S-mode interrupts, sets the m-/s-tvec CSRs to the base addresses of banks 2 and 3, and traps to S-mode. It also initiates the M-/S-mode trap handlers to execute a bunch of NOPs followed by an m-/s-ret. This is enough to simulate the behaviour of a hart running in S-mode and capable of handling S-/M-mode interrupts.
+The top-level testbench also provides some utilities that can be used to write/read configuration registers of the CLIC, and to simulate incoming interrupts (e.g. from an external platform-level interrupt controller). All these things combined form a complete testbench that is capable of emulating a simple RISC-V hart receiving and acknowledging interrupts from the CLIC.
+
+### Testing
+
+To test CLIC with the provided testbench:
+- [Optional] Edit the top-level testbench ([clic_tb.sv](./scr/tb/clic_tb.sv)) to provide the desired interrupt pattern.
+- Compile the testbench (make all)
+- Run the simulation (make run)
+
+Traces will be generated in *./traces/trace.log*.
+
+
+### Limitations
+- Not able to clear interrupts from controller yet (the register interface is not implemented).
+
 ## Directory Structure
 ```
 .

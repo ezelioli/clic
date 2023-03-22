@@ -1,32 +1,8 @@
+import clic_tb_pkg::*;
+
 module clic_tb;
 
   localparam int unsigned CLOCK_PERIOD = 20ns;
-
-  localparam int unsigned N_IRQ_SRCS    = clic_reg_pkg::NumSrc;
-  localparam int unsigned IRQ_SRC_WIDTH = $clog2(N_IRQ_SRCS);
-
-  localparam int unsigned REG_BUS_ADDR_WIDTH = 32;
-  localparam int unsigned REG_BUS_DATA_WIDTH = 32;
-
-  typedef logic   [REG_BUS_ADDR_WIDTH-1:0] addr_t;
-  typedef logic   [REG_BUS_DATA_WIDTH-1:0] data_t;
-  typedef logic [REG_BUS_DATA_WIDTH/8-1:0] strb_t;
-
-  `define CLIC_INT_ATTR_OFFSET(i) (32'h1008 + 16*i)
-
-  typedef struct packed {
-    addr_t addr;
-    logic  write;
-    data_t wdata;
-    logic  wstrb;
-    logic  valid;
-  } req_t;
-
-  typedef struct packed {
-    data_t rdata;
-    logic  ready;
-    logic  error;
-  } rsp_t;
 
   longint unsigned cycles; 
   longint unsigned max_cycles; 
@@ -37,7 +13,11 @@ module clic_tb;
 
   req_t                     reg_req;
   rsp_t                     reg_rsp;
+  
+  // External interrupt lines
   logic    [N_IRQ_SRCS-1:0] intr_src;
+
+  // CLIC IF
   logic                     irq_valid;
   logic                     irq_ready;
   logic [IRQ_SRC_WIDTH-1:0] irq_id;
@@ -45,7 +25,7 @@ module clic_tb;
   logic                     irq_shv;
   logic               [1:0] irq_priv;
 
-  // External interrupts
+  // Standard RISC-V interrupts (e.g. from CLINT)
   logic msip, mtip, meip; // machine software, timer, external interrupts
   logic ssip, stip, seip; // supervisor software, timer, external interrupts
 
@@ -74,33 +54,27 @@ module clic_tb;
     local_irqs
   };
 
-  // CLIC registers buffers
-  
-  // CLIC INFO
-  data_t  clic_info_d, 
+  /////////////////////////////
+  // CLIC registers buffers  //
+  /////////////////////////////
+  // Use these registers to store  the information read from 
+  // the CLIC register file
+  data_t  clic_info_d,     // CLIC INFO 
           clic_info_q;
-  
-  // CLIC CFG (Smclicconfig extension)
-  data_t  clic_cfg_d, 
+  data_t  clic_cfg_d,      // CLIC CFG (Smclicconfig)
           clic_cfg_q;
-  
-  // CLIC Interrupt pending
-  data_t  clic_intip_d, 
+  data_t  clic_intip_d,    // CLIC Interrupt pending
           clic_intip_q;
-  
-  // CLIC Interrupt enable
-  data_t  clic_intie_d, 
+  data_t  clic_intie_d,    // CLIC Interrupt enable 
           clic_intie_q;
-  
-  // CLIC Interrupt Attributes
-  data_t  clic_intattr_d, 
+  data_t  clic_intattr_d,  // CLIC Interrupt Attributes 
           clic_intattr_q;
-  
-  // CLIC Interrupt Control
-  data_t  clic_intctrl_d, 
+  data_t  clic_intctrl_d,  // CLIC Interrupt Control 
           clic_intctrl_q;
 
-  // DUT
+  ////////////////////////////
+  //           DUT          //
+  ////////////////////////////
   clic #(
 
     .N_SOURCE   (clic_reg_pkg::NumSrc),         // 256
@@ -126,10 +100,32 @@ module clic_tb;
     .irq_priv_o  (irq_priv)
   );
 
-  // RST/CLK generation
+  // Simple CLIC target (simulates hart behaviour)
+  clic_controller #(
+
+    .N_SOURCE   (clic_reg_pkg::NumSrc),         // 256
+    .INTCTLBITS (clic_reg_pkg::ClicIntCtlBits)  // 8
+  
+  ) i_clic_controller (
+
+    .clk_i             (clk),
+    .rst_ni            (rst_n),
+
+    // CLIC IF
+    .clic_irq_valid_i  (irq_valid),
+    .clic_irq_ready_o  (irq_ready),
+    .clic_irq_id_i     (irq_id),
+    .clic_irq_level_i  (irq_level),
+    .clic_irq_shv_i    (irq_shv),
+    .clic_irq_priv_i   (irq_priv)
+  );
+
+  /////////////////////////
+  //  RST/CLK generator  //
+  /////////////////////////
   initial begin
     cycles = 0;
-    max_cycles = 1000;
+    max_cycles = 1000; // Note: simulation stops after max_cycles
     clk   = 1'b0;
     rst_n = 1'b0;
     repeat(8)
@@ -141,7 +137,6 @@ module clic_tb;
 
       if(cycles > max_cycles) begin
         $stop();
-        // $fatal(1, "Simulation reached maximum cycle count (%d)", cycles);
       end
 
       cycles++;
@@ -149,10 +144,10 @@ module clic_tb;
   end
 
 
-  // Default signals
-  always_comb begin
-
-    irq_ready = 1'b0;
+  /////////////////////////////////
+  //    Write buffer registers   //
+  /////////////////////////////////
+  always_comb begin : reg_write
 
     clic_info_d = clic_info_q;
     clic_cfg_d = clic_cfg_q;
@@ -190,10 +185,10 @@ module clic_tb;
         end
 
         default: begin
-          clic_info_d = clic_info_q;
-          clic_cfg_d = clic_cfg_q;
-          clic_intip_d = clic_intip_q;
-          clic_intie_d = clic_intie_q;
+          clic_info_d    = clic_info_q;
+          clic_cfg_d     = clic_cfg_q;
+          clic_intip_d   = clic_intip_q;
+          clic_intie_d   = clic_intie_q;
           clic_intattr_d = clic_intattr_q;
           clic_intctrl_d = clic_intctrl_q;
         end
@@ -203,7 +198,11 @@ module clic_tb;
 
   end
 
-  // Helper tasks to read/write CLIC registers
+  /////////////////////////////
+  //      Helper tasks       //
+  /////////////////////////////
+  
+  // Write CLIC register
   task clic_reg_write(input int unsigned addr, data);
     @(posedge clk);
     reg_req.wdata = data;
@@ -217,6 +216,7 @@ module clic_tb;
     reg_req.valid = 1'b0;
   endtask
 
+  // Read CLIC register
   task clic_reg_read(input int unsigned addr);
     @(posedge clk);
     reg_req.addr  = addr;
@@ -226,7 +226,11 @@ module clic_tb;
     reg_req.valid = 1'b0;
   endtask
 
-  // stuff happens here
+  ///////////////////////////// 
+  //     Testbench logic     //
+  /////////////////////////////
+  // Manually set external interrup signals (e.g. M/S-mode Timer Interrupts (m/stip))
+  // to simulate a precise external interrupts pattern
   initial begin 
 
     // initialize
@@ -244,41 +248,49 @@ module clic_tb;
     stip = 1'b0;
     seip = 1'b0;
 
-    // write registers
-    wait(cycles == 24);
-    clic_reg_write(clic_reg_pkg::CLIC_CLICINFO_OFFSET, 32'hAAAA_AAAA); // read-only
+    // CLIC global configuration
+    wait(cycles == 20);
     clic_reg_write(clic_reg_pkg::CLIC_CLICCFG_OFFSET, 32'b0101_0000); // set nmbits=2, nlbits=8, nvbits=0
 
-    // read back registers
-    wait(cycles == 49);
+    // Read global information/configuration registers
+    wait(cycles == 50);
     clic_reg_read(clic_reg_pkg::CLIC_CLICINFO_OFFSET);
     clic_reg_read(clic_reg_pkg::CLIC_CLICCFG_OFFSET);
 
+    // Set-up machine and supervisor timer interrupts configuration
     wait(cycles == 100);
     clic_reg_write(32'h0000_1058, 32'b0100_0000); // set clicintattr[STIP].{shv=0, trig=0b00, mode=0b01} (not vectored, positive-level-triggered, S-mode)
     clic_reg_write(32'h0000_1078, 32'b1100_0000); // set clicintattr[MTIP].{shv=0, trig=0b00, mode=0b11} (not vectored, positive-level-triggered, M-mode)
 
+    // Set mtip/stip priorities
     wait(cycles == 120);
-    clic_reg_write(32'h0000_107C, 32'hFF); // set clicintctrl[MTIP] = 254 (priority/level)
-    clic_reg_write(32'h0000_105C, 32'hFF); // set clicintctrl[STIP] = 255 (priority/level)
+    clic_reg_write(32'h0000_107C, 32'h01); // set clicintctrl[MTIP] = 1 (priority/level)
+    clic_reg_write(32'h0000_105C, 32'h02); // set clicintctrl[STIP] = 2 (priority/level)
 
+    // Enable mtip/stip
     wait(cycles == 140);
     clic_reg_write(32'h0000_1074, 32'b1); // set clicintie[MTIP] = 1
     clic_reg_write(32'h0000_1054, 32'b1); // set clicintie[STIP] = 1
 
+    // Simulate both interrupts arriving at the same time
     wait(cycles == 200);
     @(posedge clk);
     mtip = 1'b1;
     stip = 1'b1;
     @(posedge clk);
 
+    // External mtip is de-asserted (software also needs to explicitly clear the clicintip register)
     wait(cycles == 300);
     mtip = 1'b0;
     // clic_reg_write(32'h0000_1070, 32'h0); // clear clicintip[MTIP] = 0
 
+    // External stip is de-asserted (software also needs to explicitly clear the clicintip register)
     wait(cycles == 350);
     stip = 1'b0;
-    // clic_reg_write(32'h0000_1050, 32'h0); // clear clicintip[STIP] = 0    
+    // clic_reg_write(32'h0000_1050, 32'h0); // clear clicintip[STIP] = 0
+
+    wait(cycles == 400);
+    // stip = 1'b0;
 
     // wait forever
     forever begin
@@ -290,7 +302,7 @@ module clic_tb;
   // FFs to save CLIC registers content
   always_ff @(posedge clk or negedge rst_n) begin
 
-    if (!rst_n) begin
+    if (~rst_n) begin
       clic_info_q    <= '0;
       clic_cfg_q     <= '0;
       clic_intip_q   <= '0;
