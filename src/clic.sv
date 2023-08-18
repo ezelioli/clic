@@ -24,12 +24,12 @@ module clic import mclic_reg_pkg::*; import clicint_reg_pkg::*; import clicintv_
   parameter int  INTCTLBITS = 8,
   parameter bit  SSCLIC = 0,
   parameter bit  USCLIC = 0,
-  parameter bit  VSCLIC = 0, // enable vCLIC (requires SSCLIC)
+  // parameter bit  VSCLIC = 0, // enable vCLIC (requires SSCLIC)
 
   // vCLIC dependent parameters
-  parameter int unsigned N_VSCTXTS = 0, // Number of Virtual Contexts supported. 
-                                        // This implementation assumes CLIC is mapped to an address 
-                                        // range that allows up to 64 contexts (at least 512KiB)
+  // parameter int unsigned N_VSCTXTS = 0, // Number of Virtual Contexts supported. 
+  //                                       // This implementation assumes CLIC is mapped to an address 
+  //                                       // range that allows up to 64 contexts (at least 512KiB)
   parameter bit  VSPRIO = 0, // enable VS prioritization (requires VSCLIC)
   
   // do not edit below, these are derived
@@ -60,18 +60,22 @@ module clic import mclic_reg_pkg::*; import clicint_reg_pkg::*; import clicintv_
   input  logic              irq_kill_ack_i
 );
 
-  if (USCLIC)
-    $fatal(1, "usclic mode is not supported");
+  // if (USCLIC)
+  //   $fatal(1, "usclic mode is not supported");
 
-  if (VSCLIC) begin
-    if (N_VSCTXTS <= 0 || N_VSCTXTS > MAX_VSCTXTS)
-      $fatal(1, "vsclic extension requires N_VSCTXTS in [1, 64]");
-    if (!SSCLIC)
-      $fatal(1, "vsclic extension requires ssclic");
-  end else begin
-    if(VSPRIO)
-      $fatal(1, "vsprio extension requires vsclic");
-  end
+  // if (VSCLIC) begin
+  //   if (N_VSCTXTS <= 0 || N_VSCTXTS > MAX_VSCTXTS)
+  //     $fatal(1, "vsclic extension requires N_VSCTXTS in [1, 64]");
+  //   if (!SSCLIC)
+  //     $fatal(1, "vsclic extension requires ssclic");
+  // end else begin
+  //   if(VSPRIO)
+  //     $fatal(1, "vsprio extension requires vsclic");
+  // end
+
+  localparam bit VSCLIC = 1;
+
+  localparam int unsigned N_VSCTXTS = 64;
 
   localparam logic [1:0] U_MODE = 2'b00;
   localparam logic [1:0] S_MODE = 2'b01;
@@ -111,9 +115,201 @@ module clic import mclic_reg_pkg::*; import clicint_reg_pkg::*; import clicintv_
   localparam logic [ADDR_W-1:0] VSCLICPRIO_END   = 'h0efff;
 
   // VS `i` (1 <= i <= 64) will be mapped to VSCLIC*(i) address space
-  `define VSCLICCFG_START(i)  ('h08000 * (i + 1))
-  `define VSCLICINT_START(i)  ('h08000 * (i + 1) + 'h01000)
-  `define VSCLICINT_END(i)    ('h08000 * (i + 1) + 'h04fff)
+  // `define VSCLICCFG_START(i)  ('h08000 * (i + 1))
+  // `define VSCLICINT_START(i)  ('h08000 * (i + 1) + 'h01000)
+  // `define VSCLICINT_END(i)    ('h08000 * (i + 1) + 'h04fff)
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_1 = 'h11000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_1   = 'h14fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_2 = 'h19000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_2   = 'h1cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_3 = 'h21000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_3   = 'h24fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_4 = 'h29000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_4   = 'h2cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_5 = 'h31000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_5   = 'h34fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_6 = 'h39000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_6   = 'h3cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_7 = 'h41000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_7   = 'h44fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_8 = 'h49000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_8   = 'h4cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_9 = 'h51000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_9   = 'h54fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_10 = 'h59000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_10   = 'h5cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_11 = 'h61000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_11   = 'h64fff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_12 = 'h69000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_12   = 'h6cfff;
+
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_13 = 'h071000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_13   = 'h074fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_14 = 'h079000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_14   = 'h07cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_15 = 'h081000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_15   = 'h084fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_16 = 'h089000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_16   = 'h08cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_17 = 'h091000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_17   = 'h094fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_18 = 'h099000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_18   = 'h09cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_19 = 'h0a1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_19   = 'h0a4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_20 = 'h0a9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_20   = 'h0acfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_21 = 'h0b1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_21   = 'h0b4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_22 = 'h0b9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_22   = 'h0bcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_23 = 'h0c1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_23   = 'h0c4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_24 = 'h0c9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_24   = 'h0ccfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_25 = 'h0d1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_25   = 'h0d4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_26 = 'h0d9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_26   = 'h0dcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_27 = 'h0e1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_27   = 'h0e4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_28 = 'h0e9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_28   = 'h0ecfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_29 = 'h0f1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_29   = 'h0f4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_30 = 'h0f9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_30   = 'h0fcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_31 = 'h101000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_31   = 'h104fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_32 = 'h109000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_32   = 'h10cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_33 = 'h111000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_33   = 'h114fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_34 = 'h119000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_34   = 'h11cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_35 = 'h121000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_35   = 'h124fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_36 = 'h129000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_36   = 'h12cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_37 = 'h131000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_37   = 'h134fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_38 = 'h139000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_38   = 'h13cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_39 = 'h141000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_39   = 'h144fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_40 = 'h149000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_40   = 'h14cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_41 = 'h151000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_41   = 'h154fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_42 = 'h159000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_42   = 'h15cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_43 = 'h161000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_43   = 'h164fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_44 = 'h169000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_44   = 'h16cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_45 = 'h171000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_45   = 'h174fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_46 = 'h179000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_46   = 'h17cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_47 = 'h181000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_47   = 'h184fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_48 = 'h189000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_48   = 'h18cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_49 = 'h191000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_49   = 'h194fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_50 = 'h199000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_50   = 'h19cfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_51 = 'h1a1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_51   = 'h1a4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_52 = 'h1a9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_52   = 'h1acfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_53 = 'h1b1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_53   = 'h1b4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_54 = 'h1b9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_54   = 'h1bcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_55 = 'h1c1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_55   = 'h1c4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_56 = 'h1c9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_56   = 'h1ccfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_57 = 'h1d1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_57   = 'h1d4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_58 = 'h1d9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_58   = 'h1dcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_59 = 'h1e1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_59   = 'h1e4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_60 = 'h1e9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_60   = 'h1ecfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_61 = 'h1f1000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_61   = 'h1f4fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_62 = 'h1f9000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_62   = 'h1fcfff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_63 = 'h201000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_63   = 'h204fff;
+  
+  localparam logic [ADDR_W-1:0] VSCLICINT_START_64 = 'h209000;
+  localparam logic [ADDR_W-1:0] VSCLICINT_END_64   = 'h20cfff;
 
   // Reduce area by setting wire width to 0 
   // if VSPRIO extension is not enabled.
@@ -451,6 +647,1287 @@ module clic import mclic_reg_pkg::*; import clicint_reg_pkg::*; import clicintv_
           reg_rsp_o.ready = 1'b1;
         end
       end
+      // Match VS address space
+      [VSCLICINT_START_1:VSCLICINT_START_1]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_1;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 1)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_2:VSCLICINT_START_2]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_2;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 2)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_3:VSCLICINT_START_3]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_3;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 3)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_4:VSCLICINT_START_4]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_4;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 4)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_5:VSCLICINT_START_5]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_5;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 5)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_6:VSCLICINT_START_6]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_6;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 6)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_7:VSCLICINT_START_7]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_7;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 7)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_8:VSCLICINT_START_8]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_8;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 8)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_9:VSCLICINT_START_9]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_9;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 9)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_10:VSCLICINT_START_10]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_10;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 10)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_11:VSCLICINT_START_11]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_11;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 11)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_12:VSCLICINT_START_12]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_12;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 12)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_13:VSCLICINT_START_13]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_13;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 13)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_14:VSCLICINT_START_14]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_14;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 14)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_15:VSCLICINT_START_15]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_15;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 15)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_16:VSCLICINT_START_16]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_16;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 16)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_17:VSCLICINT_START_17]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_17;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 17)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_18:VSCLICINT_START_18]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_18;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 18)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_19:VSCLICINT_START_19]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_19;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 19)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_20:VSCLICINT_START_20]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_20;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 20)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_21:VSCLICINT_START_21]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_21;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 21)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_22:VSCLICINT_START_22]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_22;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 22)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_23:VSCLICINT_START_23]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_23;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 23)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_24:VSCLICINT_START_24]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_24;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 24)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_25:VSCLICINT_START_25]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_25;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 25)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_26:VSCLICINT_START_26]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_26;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 26)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_27:VSCLICINT_START_27]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_27;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 27)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_28:VSCLICINT_START_28]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_28;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 28)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_29:VSCLICINT_START_29]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_29;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 29)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_30:VSCLICINT_START_30]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_30;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 30)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_31:VSCLICINT_START_31]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_31;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 31)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_32:VSCLICINT_START_32]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_32;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 32)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_33:VSCLICINT_START_33]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_33;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 33)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_34:VSCLICINT_START_34]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_34;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 34)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_35:VSCLICINT_START_35]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_35;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 35)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_36:VSCLICINT_START_36]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_36;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 36)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_37:VSCLICINT_START_37]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_37;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 37)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_38:VSCLICINT_START_38]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_38;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 38)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_39:VSCLICINT_START_39]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_39;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 39)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_40:VSCLICINT_START_40]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_40;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 40)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_41:VSCLICINT_START_41]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_41;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 41)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_42:VSCLICINT_START_42]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_42;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 42)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_43:VSCLICINT_START_43]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_43;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 43)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_44:VSCLICINT_START_44]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_44;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 44)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_45:VSCLICINT_START_45]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_45;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 45)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_46:VSCLICINT_START_46]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_46;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 46)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_47:VSCLICINT_START_47]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_47;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 47)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_48:VSCLICINT_START_48]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_48;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 48)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_49:VSCLICINT_START_49]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_49;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 49)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_50:VSCLICINT_START_50]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_50;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 50)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_51:VSCLICINT_START_51]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_51;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 51)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_52:VSCLICINT_START_52]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_52;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 52)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_53:VSCLICINT_START_53]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_53;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 53)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_54:VSCLICINT_START_54]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_54;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 54)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_55:VSCLICINT_START_55]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_55;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 55)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_56:VSCLICINT_START_56]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_56;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 56)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_57:VSCLICINT_START_57]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_57;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 57)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_58:VSCLICINT_START_58]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_58;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 58)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_59:VSCLICINT_START_59]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_59;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 59)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_60:VSCLICINT_START_60]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_60;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 60)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_61:VSCLICINT_START_61]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_61;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 61)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_62:VSCLICINT_START_62]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_62;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 62)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_63:VSCLICINT_START_63]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_63;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 63)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
+      [VSCLICINT_START_64:VSCLICINT_START_64]: begin
+        addr_tmp = reg_req_i.addr[ADDR_W-1:0] - VSCLICINT_START_64;
+        if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
+            (intv[addr_tmp[ADDR_W-1:2]])              && 
+            (vsid[addr_tmp[ADDR_W-1:2]] == 64)) begin
+          // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
+          reg_all_int_req = reg_req_i;
+          reg_all_int_req.addr = addr_tmp;
+          // Prevent setting interrupt mode to m-mode . This is currently a
+          // bit ugly but will be nicer once we do away with auto generated
+          // clicint registers
+          reg_all_int_req.wdata[23] = 1'b0;
+          reg_rsp_o = reg_all_int_rsp;
+        end else begin
+          // inaccesible (all zero)
+          reg_rsp_o.rdata = '0;
+          reg_rsp_o.error = '0;
+          reg_rsp_o.ready = 1'b1;
+        end
+      end
       default: begin
         // inaccesible (all zero)
         reg_rsp_o.rdata = '0;
@@ -458,41 +1935,6 @@ module clic import mclic_reg_pkg::*; import clicint_reg_pkg::*; import clicintv_
         reg_rsp_o.ready = 1'b1;
       end
     endcase // unique case (reg_req_i.addr)
-
-    // Match VS address space
-    if (VSCLIC) begin
-      for (int i = 1; i <= N_VSCTXTS; i++) begin
-        case(reg_req_i.addr[ADDR_W-1:0]) inside
-          // TODO: whether / how to grant access to MCLICCFG register
-          `VSCLICCFG_START(i): begin
-            // inaccesible (all zero)
-            reg_rsp_o.rdata = '0;
-            reg_rsp_o.error = '0;
-            reg_rsp_o.ready = 1'b1;
-          end
-          [`VSCLICINT_START(i):`VSCLICINT_END(i)]: begin
-            addr_tmp = reg_req_i.addr[ADDR_W-1:0] - `VSCLICINT_START(i);
-            if ((intmode[addr_tmp[ADDR_W-1:2]] == S_MODE) && 
-                (intv[addr_tmp[ADDR_W-1:2]])              && 
-                (vsid[addr_tmp[ADDR_W-1:2]] == i)) begin
-              // check whether the irq we want to access is s-mode and its v bit is set and the VSID corresponds
-              reg_all_int_req = reg_req_i;
-              reg_all_int_req.addr = addr_tmp;
-              // Prevent setting interrupt mode to m-mode . This is currently a
-              // bit ugly but will be nicer once we do away with auto generated
-              // clicint registers
-              reg_all_int_req.wdata[23] = 1'b0;
-              reg_rsp_o = reg_all_int_rsp;
-            end else begin
-              // inaccesible (all zero)
-              reg_rsp_o.rdata = '0;
-              reg_rsp_o.error = '0;
-              reg_rsp_o.ready = 1'b1;
-            end
-          end
-        endcase // case (reg_req_i.addr)
-      end
-    end
   end
 
   // adapter
