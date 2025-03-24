@@ -24,9 +24,6 @@ jobs:
           Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
           (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
           SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
-        # Exclude generated headers (no license checker support for optional lines)
-        exclude_paths: |
-          sw/include/regs/*.h
 
   lint-sv:
     runs-on: ubuntu-latest
@@ -39,37 +36,10 @@ jobs:
       uses: chipsalliance/verible-linter-action@main
       with:
         paths: hw
-        # exclude_paths: hw/future/UsbOhciAxi4.v
         extra_args: "--waiver_files .github/verible.waiver"
         github_token: ${{ secrets.GITHUB_TOKEN }}
         fail_on_error: true
         reviewdog_reporter: github-check
-
-  lint-cxx:
-    runs-on: ubuntu-latest
-    steps:
-    -
-      name: Checkout
-      uses: actions/checkout@v3
-    -
-      name: Run Clang-format
-      uses: DoozyX/clang-format-lint-action@v0.14
-      with:
-        extensions: 'c,h,cpp'
-        clangFormatVersion: 14
-        style: >
-          {
-          IndentWidth: 4,
-          ColumnLimit: 100,
-          AlignEscapedNewlines: DontAlign,
-          SortIncludes: false,
-          AllowShortFunctionsOnASingleLine: None,
-          AllowShortIfStatementsOnASingleLine: true,
-          AllowShortLoopsOnASingleLine: true
-          }
-        exclude: |
-          ./sw/include/regs/*.h
-          ./target/sim/src/elfloader.cpp
 
   lint-tcl:
     runs-on: ubuntu-latest
@@ -81,11 +51,11 @@ jobs:
       name: Install Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.12
         cache: pip
     -
       name: Install Python requirements
-      run: pip install -r requirements.txt
+      run: pip install tclint
     -
       name: Run Tcllint
-      run: tclint .  --style-spaces-in-braces --style-line-length 100
+      run: tclint . --style-spaces-in-braces --style-line-length 100
